@@ -9,11 +9,10 @@ A core cryptographic primitive in Ethereum is the vector commitment, which commi
 
 In this test you will implement a basic version of a merkle tree.
 
-## Merkle Tree Structure
+## Merkle tree structure
 - The merkle tree is constructed from a vector of elements, and should have the minimum height needed to contain all elements
 - Each node of the tree is computed by hashing the left and right subtree hashes with the provided `hashNode()` function 
-- Once a tree is created with `NewMerkleTree()`, no new elements can be added
-- Leaves are strings of arbitrary length; empty Leafes should be represented by empty strings
+- Leaves are strings of arbitrary length; empty leaves should be represented by empty strings
 
 ## Building and Running
 ```
