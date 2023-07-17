@@ -14,7 +14,7 @@ In this test you will implement a basic version of a merkle tree.
 - Each node of the tree is computed by hashing the left and right subtree hashes with the provided `hashNode()` function 
 - Leaves are strings of arbitrary length; empty leaves should be represented by empty strings
 
-## Building and Running
+## Building and running
 ```
 # clone the repo
 git clone git@github.com:SpecularL2/interview-test.git
@@ -22,3 +22,9 @@ git clone git@github.com:SpecularL2/interview-test.git
 # run the test
 go test .
 ```
+
+## Submission
+
+We request that you avoid posting your solution publicly. Instead, preferably—upload your submission to a private repo and provide access via [Gitfront](https://gitfront.io/). The website has instructions, but essentially: (1) click `Get Started -> Create a new account -> Add repository`; (2) copy-paste the repo's SSH link from Github and click `Add`; (3) copy-paste the generated key from Gitfront to the deploy keys in the Github project, and (4) click `Build -> View`, and send us the link. 
+
+This allows you to provide us an easy-to-access shareable link. Alternatively, if this workflow doesn't work for you just send us the files as a zip attachment.
