@@ -25,6 +25,6 @@ go test .
 
 ## Submission
 
-We request that you avoid posting your solution publicly. Instead, preferably—upload your submission to a private repo and provide access via [Gitfront](https://gitfront.io/). The website has instructions, but essentially: (1) click `Get Started -> Create a new account -> Add repository`; (2) copy-paste the repo's SSH link from Github and click `Add`; (3) copy-paste the generated key from Gitfront to the deploy keys in the Github project, and (4) click `Build -> View`, and send us the link. 
+We request that you avoid posting your solution publicly. Instead, preferably—upload your submission to a private repo and provide access via [Gitfront](https://gitfront.io/). Follow the website's instructions, or tldr here: (1) click `Get Started -> Create a new account -> Add repository`; (2) copy-paste the repo's SSH link from Github and click `Add`; (3) copy-paste the generated key from Gitfront to the deploy keys in the Github project, and (4) click `Build -> View`, and send us the link. 
 
-This allows you to provide us an easy-to-access shareable link. Alternatively, if this workflow doesn't work for you just send us the files as a zip attachment.
+This allows you to provide us an easy-to-access shareable link. Alternatively, if this workflow doesn't work for you just send us the files as a zip attachment (or via some other accessible means).
