@@ -23,6 +23,8 @@ git clone git@github.com:SpecularL2/interview-test.git
 go test .
 ```
 
+**Note:** this repo is in an experimental state—if you can't get all of the tests to pass but are confident in your solution, we may have just forgotten to list an assumption. Feel free to send us your solution anyways.
+
 ## Submission
 
 We request that you avoid posting your solution publicly. Instead, preferably—upload your submission to a private repo and provide access via [Gitfront](https://gitfront.io/). Follow the website's instructions, or tldr here: (1) click `Get Started -> Create a new account -> Add repository`; (2) copy-paste the repo's SSH link from Github and click `Add`; (3) copy-paste the generated key from Gitfront to the deploy keys in the Github project, and (4) click `Build -> View`, and send us the link. 
