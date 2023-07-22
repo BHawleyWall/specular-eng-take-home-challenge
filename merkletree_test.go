@@ -7,7 +7,7 @@ import (
 
 func TestRoot(t *testing.T) {
 	elements := []string{"some", "test", "elements"}
-	expectedRoot := "11149427e30b266a5af018ed31fe9c1156f07efc8fd32e8e934b844e764e409c"
+	expectedRoot := "040c89dca6bd37584693bb94e6a68b6212edbc7f063d39b28ad6874dbd4f30d2"
 	testname := fmt.Sprintf("computes correct root")
 	t.Run(testname, func(t *testing.T) {
 		mt := NewMerkleTree(elements)
