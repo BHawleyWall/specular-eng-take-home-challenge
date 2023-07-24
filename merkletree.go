@@ -16,7 +16,6 @@ func hashLeaf(leaf string) string {
 func hashNode(a string, b string) string {
 	h := sha256.New()
 	h.Write([]byte(a))
-	h.Write([]byte(":"))
 	h.Write([]byte(b))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
