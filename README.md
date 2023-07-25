@@ -12,7 +12,7 @@ In this test you will implement a basic version of a merkle tree.
 ## Merkle tree structure
 - The merkle tree is constructed from a vector of elements, and should have the minimum height needed to contain all elements
 - Each node of the tree is computed by hashing the left and right subtree hashes with the provided `hashNode()` function 
-- Leaves are strings of arbitrary length; empty leaves should be represented by empty strings
+- Leaves represent the inclusion of strings of arbitrary length; empty leaves should assume empty strings
 
 ## Building and running
 ```
