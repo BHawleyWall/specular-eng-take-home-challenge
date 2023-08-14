@@ -1,6 +1,6 @@
-# Specular Technical Challenge
+# Specular technical challenge
 
-The test provides you an opportunity to demonstrate the following:
+This challenge provides you an opportunity to demonstrate the following:
 - Your ability to write a data structure algorithm (in this case a merkle tree).
 - Your ability to write clean, idiomatic Go.
 
@@ -9,10 +9,15 @@ A core cryptographic primitive in Ethereum is the vector commitment, which commi
 
 In this test you will implement a basic version of a merkle tree.
 
-## Merkle tree structure
+### Merkle tree structure
 - The merkle tree is constructed from a vector of elements, and should have the minimum height needed to contain all elements
 - Each node of the tree is computed by hashing the left and right subtree hashes with the provided `hashNode()` function 
 - Leaves represent the inclusion of strings of arbitrary length; empty leaves should assume empty strings
+
+### Requirements
+Implement the empty functions and make sure the tests pass. Also encouraged:
+- Write some of your own tests, since those provided are fairly basic.
+- Add a short summary at the top of the `README.md` to explain your solution and its asymptotic complexity.
 
 ## Building and running
 ```
@@ -22,8 +27,6 @@ git clone git@github.com:SpecularL2/interview-test.git
 # run the test
 go test .
 ```
-
-**Note:** this repo is in an experimental state—if you can't get all of the tests to pass but are confident in your solution, we may have just forgotten to list an assumption. Feel free to send us your solution anyways.
 
 ## Submission
 
