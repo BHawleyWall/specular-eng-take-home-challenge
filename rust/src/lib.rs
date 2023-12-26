@@ -21,7 +21,7 @@ pub mod merkle_tree {
     }
 
     pub struct MerkleTree {
-        // TODO
+        // TODO: add fields
     }
 
     pub struct MerkleProof {
@@ -30,11 +30,16 @@ pub mod merkle_tree {
         directions: Vec<bool>       // signal if the sibling at the same index is on the left or right
     }
 
+    // return the root of the merkle tree
+	pub fn get_root(t: &MerkleTree) -> String {
+		todo!()
+	}
+
     // create a merkle tree from a list of elements
     // the tree should have the minimum height needed to contain all elements
     // empty slots should be filled with an empty string
     pub fn create_merkle_tree(elements: &Vec<String>) -> Result<MerkleTree, String> {
-        // TODO
+        todo!()
     }
 
     // return a merkle proof of the inclusion of element at the given index
@@ -53,20 +58,20 @@ pub mod merkle_tree {
     // siblings   = [d3-3, d2-0, d1-1]
     // directions = [false, true, false]
     pub fn get_proof(t: &MerkleTree, index: usize) -> Result<MerkleProof, String> {
-        // TODO
+        todo!()
     }
 
     // verify a merkle tree against a known root
     pub fn verify_proof(root: String, proof: &MerkleProof) -> bool {
-        // TODO
+        todo!()
     }
 
     // ** BONUS (optional - easy) **
     // Updates the Merkle tree (from leaf to root) to include the new element at index.
     // For simplicity, the index must be within the bounds of the original vector size.
     // If it is not, return an error.
-    pub fn (t: MerkleTree) update_element(index: usize, element: &str) -> Result<MerkleTree, String> {
-        // TODO
+    pub fn update_element(t: MerkleTree, index: usize, element: &str) -> Result<MerkleTree, String> {
+        todo!()
     }
 
     // ** BONUS (optional - hard) **
@@ -80,7 +85,7 @@ pub mod merkle_tree {
     // The aggregated proof size should generally be smaller than
     // that of the naive approach (calling GetProof for every index).
     pub fn get_aggregate_proof(t: &MerkleTree, start_index: usize, end_index: usize) -> () {
-        // TODO
+        todo!()
     }
 }
 
