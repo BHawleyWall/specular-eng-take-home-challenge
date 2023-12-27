@@ -5,24 +5,34 @@ pub mod merkle_tree {
     use std::vec::Vec;
     use std::result::Result;
 
+    // Refactored common path to a helper function
+    pub fn hasher(input: &str) -> String {
+		let mut hasher = Sha256::new();
+		hasher.input_str(input);
+		return hasher.result_str();
+	}
+
     // hash function to be used for the construction of the merkle tree
     pub fn hash_leaf (leaf: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.input_str(leaf);
-        return hasher.result_str();
+        return hasher(leaf);
     }
 
     // hash function to be used for the construction of the merkle tree
     pub fn hash_node(left: &str, right: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.input_str(left);
-        hasher.input_str(right);
-        return hasher.result_str();
+        return hasher(format!("{left}{right}").as_str());
     }
 
-    pub struct MerkleTree {
-        // TODO: add fields
+    #[derive(Clone)]
+    pub struct MerkleNode {
+        value: String,
+		left: Option<Box<MerkleNode>>,
+		right: Option<Box<MerkleNode>>
     }
+
+	pub struct MerkleTree {
+        leaves: Vec<String>,
+        root: String
+	}
 
     pub struct MerkleProof {
         element:    String,         // element for which we want to prove inclusion
@@ -30,16 +40,57 @@ pub mod merkle_tree {
         directions: Vec<bool>       // signal if the sibling at the same index is on the left or right
     }
 
-    // return the root of the merkle tree
-	pub fn get_root(t: &MerkleTree) -> String {
-		todo!()
+    // return the root hash of the merkle tree
+	pub fn get_root(ref_tree: &MerkleTree) -> String {
+		ref_tree.root.to_owned()
 	}
 
     // create a merkle tree from a list of elements
     // the tree should have the minimum height needed to contain all elements
     // empty slots should be filled with an empty string
     pub fn create_merkle_tree(elements: &Vec<String>) -> Result<MerkleTree, String> {
-        todo!()
+		let mut leaves = elements.to_owned();
+		let mut nodes: Vec<MerkleNode> = Vec::new();
+
+		leaf_pairwise_check(&mut leaves);
+
+		for leaf in leaves.iter() {
+			nodes.push(MerkleNode {
+				value: hash_leaf(leaf),
+				left: None,
+				right: None
+			});
+		}
+
+		while nodes.len() > 1 {
+			let mut new_nodes: Vec<MerkleNode> = Vec::new();
+
+			for i in (0..nodes.len()).step_by(2) {
+				let left = nodes[i].value.to_owned();
+				let right = nodes[i + 1].value.to_owned();
+
+				new_nodes.push(MerkleNode {
+					value: hash_node(&left, &right),
+					left: Some(Box::new(nodes[i].to_owned())),
+					right: Some(Box::new(nodes[i + 1].to_owned()))
+				});
+			}
+
+			nodes = new_nodes;
+		}
+
+		let root = nodes[0].value.to_owned();
+
+		Ok(MerkleTree {
+			leaves,
+			root
+		})
+    }
+
+    fn leaf_pairwise_check(leaves: &mut Vec<String>) {
+        if leaves.len() % 2 == 1 {
+			leaves.push(String::default());
+		}
     }
 
     // return a merkle proof of the inclusion of element at the given index
