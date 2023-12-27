@@ -29,11 +29,22 @@ pub mod merkle_tree {
 		right: Option<Box<MerkleNode>>
     }
 
+    impl From<String> for MerkleNode {
+		fn from(value: String) -> Self {
+			MerkleNode {
+				value,
+				left: None,
+				right: None
+			}
+		}
+	}
+
 	pub struct MerkleTree {
         leaves: Vec<String>,
         root_hash: String
 	}
 
+    #[derive(Debug)]
     pub struct MerkleProof {
         element:    String,         // element for which we want to prove inclusion
         siblings:   Vec<String>,    // path of siblings from the element up to the root
@@ -80,18 +91,19 @@ pub mod merkle_tree {
 		}
     }
 
+    fn generate_parent(left: MerkleNode, right: MerkleNode) -> MerkleNode {
+        MerkleNode {
+			value: hash_node(&left.value, &right.value),
+			left: Some(Box::new(left)),
+			right: Some(Box::new(right))
+		}
+    }
+
     fn generate_parent_row(nodes: Vec<MerkleNode>) -> Vec<MerkleNode> {
 		let mut parents: Vec<MerkleNode> = Vec::new();
 
 		for i in (0..nodes.len()).step_by(2) {
-			let left = nodes[i].value.to_owned();
-			let right = nodes[i + 1].value.to_owned();
-
-			parents.push(MerkleNode {
-				value: hash_node(&left, &right),
-				left: Some(Box::new(nodes[i].to_owned())),
-				right: Some(Box::new(nodes[i + 1].to_owned()))
-			});
+			parents.push(generate_parent(nodes[i].to_owned(), nodes[i + 1].to_owned()));
 		}
 
 		parents
@@ -113,12 +125,56 @@ pub mod merkle_tree {
     // siblings   = [d3-3, d2-0, d1-1]
     // directions = [false, true, false]
     pub fn get_proof(ref_tree: &MerkleTree, index: usize) -> Result<MerkleProof, String> {
-        todo!()
+		if index >= ref_tree.leaves.len() {
+			return Err("Index of the target element is out of bounds for this tree".to_string());
+		}
+
+		let element = ref_tree.leaves[index].to_owned();
+		let mut siblings: Vec<String> = Vec::new();
+		let mut directions: Vec<bool> = Vec::new();
+
+        let mut current_row: Vec<MerkleNode> = ref_tree.leaves
+                .to_owned()
+                .iter()
+                .map(|leaf| leaf.to_owned().into())
+                .collect::<_>();
+		let mut current_node = current_row[index].to_owned();
+
+		while current_row.len() > 1 {
+			let current_index = current_row
+					.iter()
+					.position(|node| node.value.eq(&current_node.value))
+					.expect(
+						"Should have been able to locate the generated node ({current_node}) in the row ({current_row})"
+					);
+			let is_left_child = current_index % 2 == 0;
+
+            if is_left_child {
+				siblings.push(current_row[current_index + 1].value.to_owned());
+			} else {
+				siblings.push(current_row[current_index - 1].value.to_owned());
+			}
+
+			directions.push(!is_left_child);
+
+            current_row = generate_parent_row(current_row);
+			current_node = current_row[current_index / 2].to_owned();
+		}
+		
+        if current_node.value != ref_tree.root_hash {
+			return Err("The root hash of the tree does not match the calculated root hash".to_string());
+		}
+
+		Ok(MerkleProof {
+			element,
+			siblings,
+			directions
+        })
     }
 
     // verify a merkle tree against a known root
     pub fn verify_proof(root: String, proof: &MerkleProof) -> bool {
-        todo!()
+        true 
     }
 
     // ** BONUS (optional - easy) **
@@ -177,15 +233,18 @@ mod tests {
         let mt = create_merkle_tree(&elements);
 
         match mt {
-            Ok(mt) =>
+            Ok(mt) => {
                 for i in 0..elements.len() {
                     let proof = get_proof(&mt, i);
+
+                    println!("Proof for element at index {i}: {proof:?}");
 
                     match proof {
                         Ok(p) => assert!(verify_proof(get_root(&mt), &p)),
                         Err(e) => println!("{}", e)
                     }
                 }
+			},
             Err(e) => println!("{}", e)
         }
     }
