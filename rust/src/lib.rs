@@ -162,7 +162,7 @@ pub mod merkle_tree {
 		}
 		
         if current_node.value != ref_tree.root_hash {
-			return Err("The root hash of the tree does not match the calculated root hash".to_string());
+			return Err(format!("The root hash of the proof ({}) does not match the given root hash ({})", current_node.value, ref_tree.root_hash));
 		}
 
 		Ok(MerkleProof {
@@ -174,7 +174,7 @@ pub mod merkle_tree {
 
     // verify a merkle tree against a known root
     pub fn verify_proof(root: String, proof: &MerkleProof) -> bool {
-        true 
+        todo!()
     }
 
     // ** BONUS (optional - easy) **
@@ -230,22 +230,15 @@ mod tests {
     #[test]
     fn test_proof() {
         let elements = vec!["some".to_string(), "test".to_string(), "elements".to_string()];
-        let mt = create_merkle_tree(&elements);
+        let mt = create_merkle_tree(&elements).expect("Should have received a valid tree");
 
-        match mt {
-            Ok(mt) => {
-                for i in 0..elements.len() {
-                    let proof = get_proof(&mt, i);
+		for i in 0..elements.len() {
+			let proof = get_proof(&mt, i).expect("Should have received a valid proof for any of the original elements");
 
-                    println!("Proof for element at index {i}: {proof:?}");
+			assert!(verify_proof(get_root(&mt), &proof))
+		}
 
-                    match proof {
-                        Ok(p) => assert!(verify_proof(get_root(&mt), &p)),
-                        Err(e) => println!("{}", e)
-                    }
-                }
-			},
-            Err(e) => println!("{}", e)
-        }
+		let proof = get_proof(&mt, 0).expect("Should have received the same result as inside the loop above");
+        assert_eq!(verify_proof("not_a_valid_hash".into(), &proof), false);
     }
 }
