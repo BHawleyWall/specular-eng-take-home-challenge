@@ -9,17 +9,17 @@ pub mod merkle_tree {
     pub fn hasher(input: &str) -> String {
 		let mut hasher = Sha256::new();
 		hasher.input_str(input);
-		return hasher.result_str();
+		hasher.result_str()
 	}
 
     // hash function to be used for the construction of the merkle tree
     pub fn hash_leaf (leaf: &str) -> String {
-        return hasher(leaf);
+        hasher(leaf)
     }
 
     // hash function to be used for the construction of the merkle tree
     pub fn hash_node(left: &str, right: &str) -> String {
-        return hasher(format!("{left}{right}").as_str());
+        hasher(format!("{left}{right}").as_str())
     }
 
     #[derive(Clone)]
@@ -31,7 +31,7 @@ pub mod merkle_tree {
 
 	pub struct MerkleTree {
         leaves: Vec<String>,
-        root: String
+        root_hash: String
 	}
 
     pub struct MerkleProof {
@@ -42,7 +42,7 @@ pub mod merkle_tree {
 
     // return the root hash of the merkle tree
 	pub fn get_root(ref_tree: &MerkleTree) -> String {
-		ref_tree.root.to_owned()
+		ref_tree.root_hash.to_owned()
 	}
 
     // create a merkle tree from a list of elements
@@ -79,11 +79,11 @@ pub mod merkle_tree {
 			nodes = new_nodes;
 		}
 
-		let root = nodes[0].value.to_owned();
+		let root_hash = nodes[0].value.to_owned();
 
 		Ok(MerkleTree {
 			leaves,
-			root
+			root_hash
 		})
     }
 
@@ -108,7 +108,7 @@ pub mod merkle_tree {
     // element    = E
     // siblings   = [d3-3, d2-0, d1-1]
     // directions = [false, true, false]
-    pub fn get_proof(t: &MerkleTree, index: usize) -> Result<MerkleProof, String> {
+    pub fn get_proof(ref_tree: &MerkleTree, index: usize) -> Result<MerkleProof, String> {
         todo!()
     }
 
@@ -121,7 +121,7 @@ pub mod merkle_tree {
     // Updates the Merkle tree (from leaf to root) to include the new element at index.
     // For simplicity, the index must be within the bounds of the original vector size.
     // If it is not, return an error.
-    pub fn update_element(t: MerkleTree, index: usize, element: &str) -> Result<MerkleTree, String> {
+    pub fn update_element(tree: MerkleTree, index: usize, element: &str) -> Result<MerkleTree, String> {
         todo!()
     }
 
@@ -135,7 +135,7 @@ pub mod merkle_tree {
     //
     // The aggregated proof size should generally be smaller than
     // that of the naive approach (calling GetProof for every index).
-    pub fn get_aggregate_proof(t: &MerkleTree, start_index: usize, end_index: usize) -> () {
+    pub fn get_aggregate_proof(ref_tree: &MerkleTree, start_index: usize, end_index: usize) {
         todo!()
     }
 }
