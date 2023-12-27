@@ -63,20 +63,7 @@ pub mod merkle_tree {
 		}
 
 		while nodes.len() > 1 {
-			let mut new_nodes: Vec<MerkleNode> = Vec::new();
-
-			for i in (0..nodes.len()).step_by(2) {
-				let left = nodes[i].value.to_owned();
-				let right = nodes[i + 1].value.to_owned();
-
-				new_nodes.push(MerkleNode {
-					value: hash_node(&left, &right),
-					left: Some(Box::new(nodes[i].to_owned())),
-					right: Some(Box::new(nodes[i + 1].to_owned()))
-				});
-			}
-
-			nodes = new_nodes;
+			nodes = generate_parent_row(nodes);
 		}
 
 		let root_hash = nodes[0].value.to_owned();
@@ -91,6 +78,23 @@ pub mod merkle_tree {
         if leaves.len() % 2 == 1 {
 			leaves.push(String::default());
 		}
+    }
+
+    fn generate_parent_row(nodes: Vec<MerkleNode>) -> Vec<MerkleNode> {
+		let mut parents: Vec<MerkleNode> = Vec::new();
+
+		for i in (0..nodes.len()).step_by(2) {
+			let left = nodes[i].value.to_owned();
+			let right = nodes[i + 1].value.to_owned();
+
+			parents.push(MerkleNode {
+				value: hash_node(&left, &right),
+				left: Some(Box::new(nodes[i].to_owned())),
+				right: Some(Box::new(nodes[i + 1].to_owned()))
+			});
+		}
+
+		parents
     }
 
     // return a merkle proof of the inclusion of element at the given index
