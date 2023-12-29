@@ -42,7 +42,7 @@ pub mod merkle_tree {
 	#[derive(Debug)]
 	pub struct MerkleTree {
         leaves: Vec<String>,
-        root_hash: String
+        pub(crate) root_hash: String
 	}
 
     #[derive(Debug)]
@@ -195,7 +195,7 @@ pub mod merkle_tree {
 }
 
 #[cfg(test)]
-mod tests {
+mod validations {
     use crate::merkle_tree::*;
     
 
@@ -204,6 +204,14 @@ mod tests {
     fn get_test_tree() -> MerkleTree {
 		let elements = TEST_ELEMENTS.iter().map(|s| s.to_string()).collect::<Vec<_>>();
 		create_merkle_tree(&elements).expect("Should have received a valid tree given const test inputs")
+	}
+
+    #[test]
+    fn getting_root_hashes() {
+		let mt = get_test_tree();
+        let expected_root_hash = mt.root_hash.to_owned();
+
+		assert_eq!(get_root(&mt), expected_root_hash);
 	}
 
     #[test]
