@@ -22,7 +22,7 @@ pub mod merkle_tree {
         hasher(format!("{left}{right}").as_str())
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct MerkleNode {
         value: String,
 		left: Option<Box<MerkleNode>>,
@@ -32,13 +32,14 @@ pub mod merkle_tree {
     impl From<String> for MerkleNode {
 		fn from(value: String) -> Self {
 			MerkleNode {
-				value,
+				value: hash_leaf(&value),
 				left: None,
 				right: None
 			}
 		}
 	}
 
+	#[derive(Debug)]
 	pub struct MerkleTree {
         leaves: Vec<String>,
         root_hash: String
@@ -145,7 +146,7 @@ pub mod merkle_tree {
 					.iter()
 					.position(|node| node.value.eq(&current_node.value))
 					.expect(
-						"Should have been able to locate the generated node ({current_node}) in the row ({current_row})"
+						"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})"
 					);
 			let is_left_child = current_index % 2 == 0;
 
@@ -160,9 +161,9 @@ pub mod merkle_tree {
             current_row = generate_parent_row(current_row);
 			current_node = current_row[current_index / 2].to_owned();
 		}
-		
+        
         if current_node.value != ref_tree.root_hash {
-			return Err(format!("The root hash of the proof ({}) does not match the given root hash ({})", current_node.value, ref_tree.root_hash));
+			return Err(format!("The root hash of the proof ({current_node:?}) does not match the given root hash ({ref_tree:?})"));
 		}
 
 		Ok(MerkleProof {
@@ -203,36 +204,38 @@ pub mod merkle_tree {
 #[cfg(test)]
 mod tests {
     use crate::merkle_tree::*;
+    
+
+    const TEST_ELEMENTS: [&str; 3] = ["some", "test", "elements"];
+
+    fn get_test_tree() -> MerkleTree {
+		let elements = TEST_ELEMENTS.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+		create_merkle_tree(&elements).expect("Should have received a valid tree given const test inputs")
+	}
 
     #[test]
     fn test_root() {
-        let elements = vec!["some".to_string(), "test".to_string(), "elements".to_string()];
-
         let expected_root = hash_node(
             &hash_node(
-                &hash_leaf("some"),
-                &hash_leaf("test")
+                &hash_leaf(TEST_ELEMENTS[0]),
+                &hash_leaf(TEST_ELEMENTS[1])
                 ),
             &hash_node(
-                &hash_leaf("elements"),
+                &hash_leaf(TEST_ELEMENTS[2]),
                 &hash_leaf("")
                 )
             );
 
-        let mt = create_merkle_tree(&elements);
-
-        match mt {
-            Ok(mt) => assert_eq!(get_root(&mt), expected_root),
-            Err(e) => println!("{}", e)
-        }
+        let mt = get_test_tree();
+		
+        assert_eq!(get_root(&mt), expected_root);
     }
 
     #[test]
     fn test_proof() {
-        let elements = vec!["some".to_string(), "test".to_string(), "elements".to_string()];
-        let mt = create_merkle_tree(&elements).expect("Should have received a valid tree");
+        let mt = get_test_tree();
 
-		for i in 0..elements.len() {
+		for i in 0..TEST_ELEMENTS.len() {
 			let proof = get_proof(&mt, i).expect("Should have received a valid proof for any of the original elements");
 
 			assert!(verify_proof(get_root(&mt), &proof))
