@@ -141,22 +141,18 @@ pub mod merkle_tree {
 					.expect(
 						"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})"
 					);
-			let is_left_child = current_index % 2 == 0;
+			let sibling_is_left_child = !current_index % 2 == 0;
 
-            if is_left_child {
-				siblings.push(current_row[current_index + 1].value.to_owned());
-			} else {
+            if sibling_is_left_child {
 				siblings.push(current_row[current_index - 1].value.to_owned());
+			} else {
+				siblings.push(current_row[current_index + 1].value.to_owned());
 			}
 
-			directions.push(!is_left_child);
+			directions.push(sibling_is_left_child);
 
             current_row = generate_parent_row(current_row);
 			current_node = current_row[current_index / 2].to_owned();
-		}
-        
-        if current_node.value != ref_tree.root_hash {
-			return Err(format!("The root hash of the proof ({current_node:?}) does not match the given root hash ({ref_tree:?})"));
 		}
 
 		Ok(MerkleProof {
@@ -166,9 +162,19 @@ pub mod merkle_tree {
         })
     }
 
-    // verify a merkle tree against a known root
+    // verify a merkle sub-tree against a known root
     pub fn verify_proof(root: String, proof: &MerkleProof) -> bool {
-        todo!()
+		let mut current_hash = hash_leaf(&proof.element);
+        
+		proof.siblings.iter().zip(proof.directions.iter()).for_each(|(sibling, is_left_child)| {
+			current_hash = if *is_left_child {
+				hash_node(&sibling, &current_hash)
+			} else {
+				hash_node(&current_hash, &sibling)
+			};
+        });
+
+		current_hash.eq(&root)
     }
 
     // ** BONUS (optional - easy) **
