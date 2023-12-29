@@ -209,6 +209,7 @@ mod validations {
     
 
     const TEST_ELEMENTS: [&str; 3] = ["some", "test", "elements"];
+    const INVALID_HASH: &str = "not_a_valid_hash";
 
     fn get_test_tree() -> MerkleTree {
 		let elements = TEST_ELEMENTS.iter().map(|s| s.to_string()).collect::<Vec<_>>();
@@ -230,7 +231,7 @@ mod validations {
         let proof = get_proof(&mt, 0).expect("Should have received a valid proof for the first element");
 
 		assert!(verify_proof(get_root(&mt), &proof));
-        assert_eq!(verify_proof("not_a_valid_hash".into(), &proof), false);
+        assert_eq!(verify_proof(INVALID_HASH.into(), &proof), false);
 	}
 
     #[test]
