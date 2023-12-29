@@ -62,17 +62,10 @@ pub mod merkle_tree {
     // empty slots should be filled with an empty string
     pub fn create_merkle_tree(elements: &Vec<String>) -> Result<MerkleTree, String> {
 		let mut leaves = elements.to_owned();
-		let mut nodes: Vec<MerkleNode> = Vec::new();
 
 		leaf_pairwise_check(&mut leaves);
 
-		for leaf in leaves.iter() {
-			nodes.push(MerkleNode {
-				value: hash_leaf(leaf),
-				left: None,
-				right: None
-			});
-		}
+		let mut nodes: Vec<MerkleNode> = leaves.iter().map(|e| e.to_owned().into()).collect::<_>();
 
 		while nodes.len() > 1 {
 			nodes = generate_parent_row(nodes);
