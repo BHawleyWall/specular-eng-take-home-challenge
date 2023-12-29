@@ -139,8 +139,11 @@ pub mod merkle_tree {
 					.iter()
 					.position(|node| node.value.eq(&current_node.value))
 					.expect(
-						"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})"
-					);
+						format!(
+							"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})\
+                             Check the node and row generator paths to verify."
+						).as_str()
+                    );
 			let sibling_is_left_child = !current_index % 2 == 0;
 
             if sibling_is_left_child {
@@ -221,6 +224,16 @@ mod validations {
 	}
 
     #[test]
+    fn verifying_proofs() {
+		let mt = get_test_tree();
+
+        let proof = get_proof(&mt, 0).expect("Should have received a valid proof for the first element");
+
+		assert!(verify_proof(get_root(&mt), &proof));
+        assert_eq!(verify_proof("not_a_valid_hash".into(), &proof), false);
+	}
+
+    #[test]
     fn test_root() {
         let expected_root = hash_node(
             &hash_node(
@@ -247,8 +260,5 @@ mod validations {
 
 			assert!(verify_proof(get_root(&mt), &proof))
 		}
-
-		let proof = get_proof(&mt, 0).expect("Should have received the same result as inside the loop above");
-        assert_eq!(verify_proof("not_a_valid_hash".into(), &proof), false);
     }
 }
