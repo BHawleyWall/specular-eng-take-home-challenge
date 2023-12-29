@@ -141,7 +141,7 @@ pub mod merkle_tree {
 					.expect(
 						format!(
 							"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})\
-                             Check the node and row generator paths to verify."
+                             Check the node and row generators at the bottom of the loop to verify."
 						).as_str()
                     );
 			let sibling_is_left_child = !current_index % 2 == 0;
