@@ -105,9 +105,9 @@ pub mod merkle_tree {
     fn generate_parent_row(nodes: Vec<MerkleNode>) -> Vec<MerkleNode> {
 		let mut parents: Vec<MerkleNode> = Vec::new();
 
-		for i in (0..nodes.len()).step_by(2) {
-			parents.push(generate_parent(nodes[i].to_owned(), nodes[i + 1].to_owned()));
-		}
+        nodes
+			.chunks(2)
+			.for_each(|pair| parents.push(generate_parent(pair[0].to_owned(), pair[1].to_owned())));
 
 		parents
     }
@@ -277,14 +277,32 @@ mod validations {
     const INVALID_HASH: &str = "not_a_valid_hash";
     const VERIFY_PROOF_FAILED: bool = false;
 
-    fn get_test_tree() -> MerkleTree {
-		let elements = TEST_ELEMENTS.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+    fn get_test_tree(input: Vec<&str>) -> MerkleTree {
+		let elements = input.iter().map(|s| s.to_string()).collect::<Vec<_>>();
 		create_merkle_tree(&elements).expect("Should have received a valid tree given const test inputs")
 	}
+    
+    fn get_expected_root_hash(input: Vec<&str>) -> String {
+        let mut leaves = input;
+        if leaves.len() % 2 == 1 {
+			leaves.push("");
+		}
+        
+        let mut nodes: Vec<String> = leaves.iter().map(|e| hash_leaf(e)).collect::<_>();
+
+		while nodes.len() > 1 {
+			nodes = nodes
+				.chunks(2)
+				.map(|pair| hash_node(&pair[0], &pair[1]))
+				.collect::<_>();
+		}
+
+		nodes[0].to_owned()
+    }
 
     #[test]
     fn getting_root_hashes() {
-		let mt = get_test_tree();
+		let mt = get_test_tree(TEST_ELEMENTS.to_vec());
         let expected_root_hash = mt.root_hash.to_owned();
 
 		assert_eq!(get_root(&mt), expected_root_hash);
@@ -292,7 +310,7 @@ mod validations {
 
     #[test]
     fn verifying_proofs() {
-		let mt = get_test_tree();
+		let mt = get_test_tree(TEST_ELEMENTS.to_vec());
 
         let proof = get_proof(&mt, 0).expect("Should have received a valid proof for the first element");
 
@@ -302,18 +320,11 @@ mod validations {
 
     #[test]
 	fn updating_elements() {
-		let mt = get_test_tree();
+		let mt = get_test_tree(TEST_ELEMENTS.to_vec());
         let new_element = "extra";
-        let expected_root = hash_node(
-            &hash_node(
-                &hash_leaf(TEST_ELEMENTS[0]),
-                &hash_leaf(new_element)
-			),
-            &hash_node(
-                &hash_leaf(TEST_ELEMENTS[1]),
-                &hash_leaf(TEST_ELEMENTS[2])
-			)
-		);
+        let mut elements = TEST_ELEMENTS.to_vec();
+        elements.insert(1, new_element);
+        let expected_root = get_expected_root_hash(elements);
 
 		let updated_mt = update_element(mt, 1, new_element).expect("Should have received a valid tree from the implementation given these known inputs");
 
@@ -322,7 +333,7 @@ mod validations {
 
     #[test]
 	fn updating_elements_out_of_bounds() {
-		let mt = get_test_tree();
+		let mt = get_test_tree(TEST_ELEMENTS.to_vec());
 		let new_element = "and this is what it means to go even further beyond!";
 
 		let oob = mt.leaves.len();
@@ -332,26 +343,21 @@ mod validations {
 	}
 
     #[test]
-    fn test_root() {
-        let expected_root = hash_node(
-            &hash_node(
-                &hash_leaf(TEST_ELEMENTS[0]),
-                &hash_leaf(TEST_ELEMENTS[1])
-                ),
-            &hash_node(
-                &hash_leaf(TEST_ELEMENTS[2]),
-                &hash_leaf("")
-                )
-            );
+    fn generating_trees_of_varying_heights() {
+    }
 
-        let mt = get_test_tree();
+    #[test]
+    fn test_root() {
+        let expected_root = get_expected_root_hash(TEST_ELEMENTS.to_vec());
+
+        let mt = get_test_tree(TEST_ELEMENTS.to_vec());
 		
         assert_eq!(get_root(&mt), expected_root);
     }
 
     #[test]
     fn test_proof() {
-        let mt = get_test_tree();
+        let mt = get_test_tree(TEST_ELEMENTS.to_vec());
 
 		for i in 0..TEST_ELEMENTS.len() {
 			let proof = get_proof(&mt, i).expect("Should have received a valid proof for any of the original elements");
