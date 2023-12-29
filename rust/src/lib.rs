@@ -22,6 +22,7 @@ pub mod merkle_tree {
         hasher(format!("{left}{right}").as_str())
     }
 
+    #[allow(dead_code)]
     #[derive(Clone, Debug)]
     pub struct MerkleNode {
         value: String,
@@ -41,7 +42,7 @@ pub mod merkle_tree {
 
 	#[derive(Debug)]
 	pub struct MerkleTree {
-        leaves: Vec<String>,
+        pub(crate) leaves: Vec<String>,
         pub(crate) root_hash: String
 	}
 
@@ -139,10 +140,8 @@ pub mod merkle_tree {
 					.iter()
 					.position(|node| node.value.eq(&current_node.value))
 					.expect(
-						format!(
-							"Should have been able to locate the generated node ({current_node:#?}) in the row ({current_row:#?})\
+							"Should have been able to locate the generated node in the row\
                              Check the node and row generators at the bottom of the loop to verify."
-						).as_str()
                     );
 			let sibling_is_left_child = !current_index % 2 == 0;
 
@@ -171,9 +170,9 @@ pub mod merkle_tree {
         
 		proof.siblings.iter().zip(proof.directions.iter()).for_each(|(sibling, is_left_child)| {
 			current_hash = if *is_left_child {
-				hash_node(&sibling, &current_hash)
+				hash_node(sibling, &current_hash)
 			} else {
-				hash_node(&current_hash, &sibling)
+				hash_node(&current_hash, sibling)
 			};
         });
 
@@ -185,7 +184,15 @@ pub mod merkle_tree {
     // For simplicity, the index must be within the bounds of the original vector size.
     // If it is not, return an error.
     pub fn update_element(tree: MerkleTree, index: usize, element: &str) -> Result<MerkleTree, String> {
-        todo!()
+        if index >= tree.leaves.len() {
+			return Err("Index of the target element is out of bounds for this tree".to_string());
+		}
+    
+        let mut elements = tree.leaves;
+        elements.retain(|e| !e.is_empty());
+        elements.insert(index, element.to_string());
+
+		create_merkle_tree(&elements)
     }
 
     // ** BONUS (optional - hard) **
@@ -210,6 +217,7 @@ mod validations {
 
     const TEST_ELEMENTS: [&str; 3] = ["some", "test", "elements"];
     const INVALID_HASH: &str = "not_a_valid_hash";
+    const VERIFY_PROOF_FAILED: bool = false;
 
     fn get_test_tree() -> MerkleTree {
 		let elements = TEST_ELEMENTS.iter().map(|s| s.to_string()).collect::<Vec<_>>();
@@ -231,7 +239,38 @@ mod validations {
         let proof = get_proof(&mt, 0).expect("Should have received a valid proof for the first element");
 
 		assert!(verify_proof(get_root(&mt), &proof));
-        assert_eq!(verify_proof(INVALID_HASH.into(), &proof), false);
+        assert_eq!(verify_proof(INVALID_HASH.into(), &proof), VERIFY_PROOF_FAILED);
+	}
+
+    #[test]
+	fn updating_elements() {
+		let mt = get_test_tree();
+        let new_element = "extra";
+        let expected_root = hash_node(
+            &hash_node(
+                &hash_leaf(TEST_ELEMENTS[0]),
+                &hash_leaf(new_element)
+			),
+            &hash_node(
+                &hash_leaf(TEST_ELEMENTS[1]),
+                &hash_leaf(TEST_ELEMENTS[2])
+			)
+		);
+
+		let updated_mt = update_element(mt, 1, new_element).expect("Should have received a valid tree from the implementation given these known inputs");
+
+		assert_eq!(get_root(&updated_mt), expected_root);
+	}
+
+    #[test]
+	fn updating_elements_out_of_bounds() {
+		let mt = get_test_tree();
+		let new_element = "and this is what it means to go even further beyond!";
+
+		let oob = mt.leaves.len();
+		let result = update_element(mt, oob, new_element);
+
+        assert!(result.is_err());
 	}
 
     #[test]
