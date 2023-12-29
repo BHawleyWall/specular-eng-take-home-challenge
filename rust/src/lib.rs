@@ -53,6 +53,14 @@ pub mod merkle_tree {
         directions: Vec<bool>       // signal if the sibling at the same index is on the left or right
     }
 
+    #[allow(dead_code)]
+    #[derive(Debug)]
+	pub struct MerkleAggregateProof {
+		elements:   Vec<String>, // range of elements for which we want to prove inclusion, in left-to-right order as present in the tree 
+		siblings:   Vec<String>, // path of siblings from the elements up to the last level of siblings necessary to generate the remainder up to the root
+		directions: Vec<bool>    // signal if the siblings at the same depth are on the left
+	}
+
     // return the root hash of the merkle tree
 	pub fn get_root(ref_tree: &MerkleTree) -> String {
 		ref_tree.root_hash.to_owned()
@@ -205,8 +213,55 @@ pub mod merkle_tree {
     //
     // The aggregated proof size should generally be smaller than
     // that of the naive approach (calling GetProof for every index).
-    pub fn get_aggregate_proof(ref_tree: &MerkleTree, start_index: usize, end_index: usize) {
-        todo!()
+    pub fn get_aggregate_proof(
+        ref_tree: &MerkleTree, 
+        start_index: usize, 
+        end_index: usize
+    ) -> Result<MerkleAggregateProof, String> {
+        if start_index >= end_index || end_index >= ref_tree.leaves.len() {
+			return Err(
+                "Invalid range indices for the target elements.\
+                 Ensure your start and end both fall within the leaves vector for the given tree."
+                 .to_string()
+            );
+		}
+
+		let elements = ref_tree.leaves[start_index..end_index].to_vec();
+		let mut siblings: Vec<String> = Vec::new();
+		let mut directions: Vec<bool> = Vec::new();
+
+        let mut current_row: Vec<MerkleNode> = ref_tree.leaves
+                .to_owned()
+                .iter()
+                .map(|leaf| leaf.to_owned().into())
+                .collect::<_>();
+        let mut current_start = start_index;
+		let mut current_end = end_index;
+
+		while current_start != 0 && current_end != (current_row.len() - 1) {
+			let start_sibling_is_left_child = !current_start % 2 == 0;
+			let end_sibling_is_right_child = !current_end % 2 == 1;
+
+            if start_sibling_is_left_child {
+				siblings.push(current_row[current_start - 1].value.to_owned());
+				directions.push(start_sibling_is_left_child);
+			}
+            
+            if end_sibling_is_right_child {
+				siblings.push(current_row[current_end + 1].value.to_owned());
+				directions.push(end_sibling_is_right_child);
+			}
+
+            current_row = generate_parent_row(current_row);
+            current_start = current_start / 2;
+			current_end = current_end / 2;
+		}
+		
+		Ok(MerkleAggregateProof {
+			elements,
+			siblings,
+			directions
+		})
     }
 }
 
@@ -216,6 +271,9 @@ mod validations {
     
 
     const TEST_ELEMENTS: [&str; 3] = ["some", "test", "elements"];
+    const MORE_TEST_ELEMENTS: [&str; 4] = ["some", "more", "test", "elements"];
+    const EVEN_MORE_TEST_ELEMENTS: [&str; 5] = ["some", "more", "valid", "test", "elements"];
+    const YET_MORE_TEST_ELEMENTS: [&str; 6] = ["some", "more", "valid", "test", "elements", "too"];
     const INVALID_HASH: &str = "not_a_valid_hash";
     const VERIFY_PROOF_FAILED: bool = false;
 
