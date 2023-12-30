@@ -1,3 +1,11 @@
+# Summary
+I went with what appears to be the bog-standard node struct and row-redux pattern (at least within C-style languages).
+
+The Big-O time complexity of the `create_merkle_tree` function in this solution is O(_n_*log(_n_)). This complexity is derived from the iterative process of building the tree levels, where each level involves linear work (hashing and pairing) and the depth of the tree scales logarithmically with the number of leaves _n_.
+The time complexity of the `get_proof` function is O(_n_). This is because the most time-consuming operations inside the while loop, which are the `position` method and the `generate_parent_row` function, collectively contribute to a linear complexity over the course of the logarithmic number of iterations.
+
+There's definite improvements than can be made in both cases, but they would require deeper thought and exploration, and would possibly add more complexity to the code.  Without performance requirements driving such changes, I feel this strikes the 80/20 split correctly for an interview.
+
 # Specular technical challenge
 
 This challenge provides you an opportunity to demonstrate the following:
