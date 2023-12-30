@@ -23,7 +23,7 @@ pub mod merkle_tree {
     }
 
     #[allow(dead_code)]
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Default)]
     pub struct MerkleNode {
         value: String,
 		left: Option<Box<MerkleNode>>,
@@ -106,8 +106,22 @@ pub mod merkle_tree {
 		let mut parents: Vec<MerkleNode> = Vec::new();
 
         nodes
-			.chunks(2)
-			.for_each(|pair| parents.push(generate_parent(pair[0].to_owned(), pair[1].to_owned())));
+			.chunks_exact(2)
+			.for_each(|pair| 
+                parents.push(
+                    generate_parent(pair[0].to_owned(), pair[1].to_owned())
+                )
+            );
+
+		nodes
+			.chunks_exact(2)
+			.remainder()
+			.iter()
+			.for_each(|node| 
+                parents.push(
+                    generate_parent(node.to_owned(), MerkleNode::default())
+                )
+            );
 
 		parents
     }
@@ -291,10 +305,19 @@ mod validations {
         let mut nodes: Vec<String> = leaves.iter().map(|e| hash_leaf(e)).collect::<_>();
 
 		while nodes.len() > 1 {
-			nodes = nodes
-				.chunks(2)
+			let head: Vec<String> = nodes
+				.chunks_exact(2)
 				.map(|pair| hash_node(&pair[0], &pair[1]))
 				.collect::<_>();
+
+            let tail: Vec<String> = nodes
+				.chunks_exact(2)
+				.remainder()
+				.iter()
+                .map(|s| hash_node(&s, ""))
+				.collect::<_>();
+
+            nodes = head.into_iter().chain(tail.into_iter()).collect::<Vec<_>>();
 		}
 
 		nodes[0].to_owned()
@@ -344,6 +367,22 @@ mod validations {
 
     #[test]
     fn generating_trees_of_varying_heights() {
+        let mt_expected_root = get_expected_root_hash(TEST_ELEMENTS.to_vec());
+		let mt = get_test_tree(TEST_ELEMENTS.to_vec());
+
+		let more_mt_expected_root = get_expected_root_hash(MORE_TEST_ELEMENTS.to_vec());
+		let more_mt = get_test_tree(MORE_TEST_ELEMENTS.to_vec());
+		
+        let even_more_mt_expected_root = get_expected_root_hash(EVEN_MORE_TEST_ELEMENTS.to_vec());
+        let even_more_mt = get_test_tree(EVEN_MORE_TEST_ELEMENTS.to_vec());
+
+		let yet_more_mt_expected_root = get_expected_root_hash(YET_MORE_TEST_ELEMENTS.to_vec());
+		let yet_more_mt = get_test_tree(YET_MORE_TEST_ELEMENTS.to_vec());
+
+		assert_eq!(get_root(&mt), mt_expected_root);
+		assert_eq!(get_root(&more_mt), more_mt_expected_root);
+		assert_eq!(get_root(&even_more_mt), even_more_mt_expected_root);
+		assert_eq!(get_root(&yet_more_mt), yet_more_mt_expected_root);
     }
 
     #[test]
