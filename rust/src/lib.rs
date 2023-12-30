@@ -249,7 +249,7 @@ pub mod merkle_tree {
             .map(|leaf| leaf.to_owned().into())
             .collect::<_>();
         let mut current_start = start_index;
-        let mut current_end = end_index;
+        let mut current_end = end_index - 1;
 
         while current_start != 0 && current_end != (current_row.len() - 1) {
             let start_sibling_is_left_child = !current_start % 2 == 0;
@@ -297,24 +297,41 @@ pub mod merkle_tree {
             .collect::<Vec<_>>();
 
         for chunk in proof_siblings.chunks(2) {
+            println!("current row: {current_row:#?}");
+            println!("chunk: {chunk:#?}");
             let (start_sibling, start_is_left_child) = chunk[0];
             let (end_sibling, end_is_right_child) = chunk[1];
 
             if *start_is_left_child {
-                current_row.insert(0, start_sibling.to_owned().into());
+                current_row.insert(
+                    0,
+					MerkleNode {
+						value: start_sibling.to_owned(),
+						left: None,
+						right: None,
+					},
+                );
             }
 
             if *end_is_right_child {
-                current_row.push(end_sibling.to_owned().into());
+                current_row.push(
+					MerkleNode {
+						value: end_sibling.to_owned(),
+						left: None,
+						right: None,
+					},
+                );
             }
 
             current_row = generate_parent_row(current_row);
         }
 
         while current_row.len() > 1 {
+            println!("current row: {current_row:#?}");
             current_row = generate_parent_row(current_row);
         }
 
+        println!("root: {current_row:#?}");
         current_row[0].value.eq(&root)
     }
 }
@@ -448,7 +465,6 @@ mod validations {
 		let proof = get_aggregate_proof(&mt, 2, 6)
 			.expect("Should have received a valid proof for the elements [2,6)");
 
-        println!("{:?}", proof);
 		assert!(verify_aggregate_proof(get_root(&mt), &proof));
 		assert_eq!(
 			verify_aggregate_proof(INVALID_HASH.into(), &proof),
@@ -463,9 +479,11 @@ mod validations {
 		let oob = mt.leaves.len();
 		let overflow_result = get_aggregate_proof(&mt, 0, oob);
         let invert_result = get_aggregate_proof(&mt, 1, 0);
+        let eq_result = get_aggregate_proof(&mt, 2, 2);
 
 		assert!(overflow_result.is_err());
 		assert!(invert_result.is_err());
+		assert!(eq_result.is_err());
 	}
 
     #[test]
