@@ -327,6 +327,8 @@ mod validations {
     const MORE_TEST_ELEMENTS: [&str; 4] = ["some", "more", "test", "elements"];
     const EVEN_MORE_TEST_ELEMENTS: [&str; 5] = ["some", "more", "valid", "test", "elements"];
     const YET_MORE_TEST_ELEMENTS: [&str; 6] = ["some", "more", "valid", "test", "elements", "too"];
+    const LOTS_MORE_TEST_ELEMENTS: [&str; 7] = ["some", "more", "valid", "test", "elements", "to", "use"];
+    const INCREASINGLY_MORE_TEST_ELEMENTS: [&str; 8] = ["some", "more", "valid", "test", "elements", "to", "use", "again"];
     const INVALID_HASH: &str = "not_a_valid_hash";
     const VERIFY_PROOF_FAILED: bool = false;
 
@@ -425,11 +427,34 @@ mod validations {
         let yet_more_mt_expected_root = get_expected_root_hash(YET_MORE_TEST_ELEMENTS.to_vec());
         let yet_more_mt = get_test_tree(YET_MORE_TEST_ELEMENTS.to_vec());
 
+		let lots_more_mt_expected_root = get_expected_root_hash(LOTS_MORE_TEST_ELEMENTS.to_vec());
+		let lots_more_mt = get_test_tree(LOTS_MORE_TEST_ELEMENTS.to_vec());
+
+		let increasingly_more_mt_expected_root = get_expected_root_hash(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+		let increasingly_more_mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+
         assert_eq!(get_root(&mt), mt_expected_root);
         assert_eq!(get_root(&more_mt), more_mt_expected_root);
         assert_eq!(get_root(&even_more_mt), even_more_mt_expected_root);
         assert_eq!(get_root(&yet_more_mt), yet_more_mt_expected_root);
+		assert_eq!(get_root(&lots_more_mt), lots_more_mt_expected_root);
+		assert_eq!(get_root(&increasingly_more_mt), increasingly_more_mt_expected_root);
     }
+
+    #[test]
+    fn verifying_aggregate_proofs() {
+		let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+
+		let proof = get_aggregate_proof(&mt, 2, 6)
+			.expect("Should have received a valid proof for the elements [2,6)");
+
+        println!("{:?}", proof);
+		assert!(verify_aggregate_proof(get_root(&mt), &proof));
+		assert_eq!(
+			verify_aggregate_proof(INVALID_HASH.into(), &proof),
+			VERIFY_PROOF_FAILED
+		);
+	}
 
     #[test]
     fn test_root() {
