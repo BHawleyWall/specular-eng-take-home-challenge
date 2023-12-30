@@ -457,6 +457,18 @@ mod validations {
 	}
 
     #[test]
+	fn verifying_aggregate_proofs_out_of_bounds() {
+		let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+
+		let oob = mt.leaves.len();
+		let overflow_result = get_aggregate_proof(&mt, 0, oob);
+        let invert_result = get_aggregate_proof(&mt, 1, 0);
+
+		assert!(overflow_result.is_err());
+		assert!(invert_result.is_err());
+	}
+
+    #[test]
     fn test_root() {
         let expected_root = get_expected_root_hash(TEST_ELEMENTS.to_vec());
 
