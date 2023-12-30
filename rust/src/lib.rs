@@ -305,22 +305,20 @@ pub mod merkle_tree {
             if *start_is_left_child {
                 current_row.insert(
                     0,
-					MerkleNode {
-						value: start_sibling.to_owned(),
-						left: None,
-						right: None,
-					},
+                    MerkleNode {
+                        value: start_sibling.to_owned(),
+                        left: None,
+                        right: None,
+                    },
                 );
             }
 
             if *end_is_right_child {
-                current_row.push(
-					MerkleNode {
-						value: end_sibling.to_owned(),
-						left: None,
-						right: None,
-					},
-                );
+                current_row.push(MerkleNode {
+                    value: end_sibling.to_owned(),
+                    left: None,
+                    right: None,
+                });
             }
 
             current_row = generate_parent_row(current_row);
@@ -344,8 +342,11 @@ mod validations {
     const MORE_TEST_ELEMENTS: [&str; 4] = ["some", "more", "test", "elements"];
     const EVEN_MORE_TEST_ELEMENTS: [&str; 5] = ["some", "more", "valid", "test", "elements"];
     const YET_MORE_TEST_ELEMENTS: [&str; 6] = ["some", "more", "valid", "test", "elements", "too"];
-    const LOTS_MORE_TEST_ELEMENTS: [&str; 7] = ["some", "more", "valid", "test", "elements", "to", "use"];
-    const INCREASINGLY_MORE_TEST_ELEMENTS: [&str; 8] = ["some", "more", "valid", "test", "elements", "to", "use", "again"];
+    const LOTS_MORE_TEST_ELEMENTS: [&str; 7] =
+        ["some", "more", "valid", "test", "elements", "to", "use"];
+    const INCREASINGLY_MORE_TEST_ELEMENTS: [&str; 8] = [
+        "some", "more", "valid", "test", "elements", "to", "use", "again",
+    ];
     const INVALID_HASH: &str = "not_a_valid_hash";
     const VERIFY_PROOF_FAILED: bool = false;
 
@@ -444,47 +445,51 @@ mod validations {
         let yet_more_mt_expected_root = get_expected_root_hash(YET_MORE_TEST_ELEMENTS.to_vec());
         let yet_more_mt = get_test_tree(YET_MORE_TEST_ELEMENTS.to_vec());
 
-		let lots_more_mt_expected_root = get_expected_root_hash(LOTS_MORE_TEST_ELEMENTS.to_vec());
-		let lots_more_mt = get_test_tree(LOTS_MORE_TEST_ELEMENTS.to_vec());
+        let lots_more_mt_expected_root = get_expected_root_hash(LOTS_MORE_TEST_ELEMENTS.to_vec());
+        let lots_more_mt = get_test_tree(LOTS_MORE_TEST_ELEMENTS.to_vec());
 
-		let increasingly_more_mt_expected_root = get_expected_root_hash(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
-		let increasingly_more_mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+        let increasingly_more_mt_expected_root =
+            get_expected_root_hash(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+        let increasingly_more_mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
 
         assert_eq!(get_root(&mt), mt_expected_root);
         assert_eq!(get_root(&more_mt), more_mt_expected_root);
         assert_eq!(get_root(&even_more_mt), even_more_mt_expected_root);
         assert_eq!(get_root(&yet_more_mt), yet_more_mt_expected_root);
-		assert_eq!(get_root(&lots_more_mt), lots_more_mt_expected_root);
-		assert_eq!(get_root(&increasingly_more_mt), increasingly_more_mt_expected_root);
+        assert_eq!(get_root(&lots_more_mt), lots_more_mt_expected_root);
+        assert_eq!(
+            get_root(&increasingly_more_mt),
+            increasingly_more_mt_expected_root
+        );
     }
 
     #[test]
     fn verifying_aggregate_proofs() {
-		let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+        let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
 
-		let proof = get_aggregate_proof(&mt, 2, 6)
-			.expect("Should have received a valid proof for the elements [2,6)");
+        let proof = get_aggregate_proof(&mt, 2, 6)
+            .expect("Should have received a valid proof for the elements [2,6)");
 
-		assert!(verify_aggregate_proof(get_root(&mt), &proof));
-		assert_eq!(
-			verify_aggregate_proof(INVALID_HASH.into(), &proof),
-			VERIFY_PROOF_FAILED
-		);
-	}
+        assert!(verify_aggregate_proof(get_root(&mt), &proof));
+        assert_eq!(
+            verify_aggregate_proof(INVALID_HASH.into(), &proof),
+            VERIFY_PROOF_FAILED
+        );
+    }
 
     #[test]
-	fn verifying_aggregate_proofs_out_of_bounds() {
-		let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
+    fn verifying_aggregate_proofs_out_of_bounds() {
+        let mt = get_test_tree(INCREASINGLY_MORE_TEST_ELEMENTS.to_vec());
 
-		let oob = mt.leaves.len();
-		let overflow_result = get_aggregate_proof(&mt, 0, oob);
+        let oob = mt.leaves.len();
+        let overflow_result = get_aggregate_proof(&mt, 0, oob);
         let invert_result = get_aggregate_proof(&mt, 1, 0);
         let eq_result = get_aggregate_proof(&mt, 2, 2);
 
-		assert!(overflow_result.is_err());
-		assert!(invert_result.is_err());
-		assert!(eq_result.is_err());
-	}
+        assert!(overflow_result.is_err());
+        assert!(invert_result.is_err());
+        assert!(eq_result.is_err());
+    }
 
     #[test]
     fn test_root() {
