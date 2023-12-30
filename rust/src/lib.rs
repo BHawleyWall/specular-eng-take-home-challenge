@@ -258,13 +258,19 @@ pub mod merkle_tree {
 
             if start_sibling_is_left_child {
 				siblings.push(current_row[current_start - 1].value.to_owned());
-				directions.push(start_sibling_is_left_child);
-			}
+			} else {
+                siblings.push(MerkleNode::default().value.to_owned())
+            }
+			
+            directions.push(start_sibling_is_left_child);
             
             if end_sibling_is_right_child {
 				siblings.push(current_row[current_end + 1].value.to_owned());
-				directions.push(end_sibling_is_right_child);
+			} else {
+				siblings.push(MerkleNode::default().value.to_owned())
 			}
+			
+            directions.push(end_sibling_is_right_child);
 
             current_row = generate_parent_row(current_row);
             current_start = current_start / 2;
@@ -276,6 +282,39 @@ pub mod merkle_tree {
 			siblings,
 			directions
 		})
+    }
+
+    pub fn verify_aggregate_proof(root: String, proof: &MerkleAggregateProof) -> bool {
+        let mut current_row = proof.elements
+				.iter()
+				.map(|leaf| leaf.to_owned().into())
+				.collect::<Vec<_>>();
+
+        let proof_siblings = proof.siblings
+				.iter()
+				.zip(proof.directions.iter())
+				.collect::<Vec<_>>();
+
+        for chunk in proof_siblings.chunks(2) {
+			let (start_sibling, start_is_left_child) = chunk[0];
+			let (end_sibling, end_is_right_child) = chunk[1];
+
+			if *start_is_left_child {
+				current_row.insert(0, start_sibling.to_owned().into());
+			}
+
+			if *end_is_right_child {
+				current_row.push(end_sibling.to_owned().into());
+			}
+
+			current_row = generate_parent_row(current_row);
+		}
+
+        while current_row.len() > 1 {
+			current_row = generate_parent_row(current_row);
+        }
+
+		current_row[0].value.eq(&root)
     }
 }
 
